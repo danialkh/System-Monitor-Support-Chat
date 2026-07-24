@@ -44,6 +44,7 @@ Configure Environment Variables:Create a .env file in your **backend** directory
    ```bash
    GEMINI_API_KEY=your_gemini_api_key_here
    PORT=5005
+   ```
 
 
 ### Run the Application:Bashnode index.js
