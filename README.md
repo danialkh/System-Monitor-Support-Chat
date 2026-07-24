@@ -50,7 +50,7 @@ Configure Environment Variables:Create a .env file in your **backend** directory
 ### Run the Application:Bashnode index.js
 
    ```bash
-   PORT=5001 npm start
+   PORT=5005 npm start
    ```
 
 The server will start up on http://localhost:5005.🔌 API EndpointsMethodEndpointDescriptionGET/api/metricsFetches current server uptime, CPU load, and active user count.GET/api/messagesRetrieves the complete message history.POST/api/messagesSubmits a new chat message and triggers the automated Gemini response pipeline.GET/api/eventsEstablishes the real-time SSE stream for metrics and chat updates.
