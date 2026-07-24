@@ -41,12 +41,11 @@ Install dependencies:
 Bash npm install
 Configure Environment Variables:Create a .env file in your **backend** directory and add your 
 **Gemini API key**: and **PORT=5005**
-   
    ```bash
    GEMINI_API_KEY=your_gemini_api_key_here
    PORT=5005
 
 
-Run the Application:Bashnode index.js
+### Run the Application:Bashnode index.js
 
 The server will start up on http://localhost:5005.🔌 API EndpointsMethodEndpointDescriptionGET/api/metricsFetches current server uptime, CPU load, and active user count.GET/api/messagesRetrieves the complete message history.POST/api/messagesSubmits a new chat message and triggers the automated Gemini response pipeline.GET/api/eventsEstablishes the real-time SSE stream for metrics and chat updates.
