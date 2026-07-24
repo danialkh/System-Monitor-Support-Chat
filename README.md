@@ -36,3 +36,14 @@ Ensure you have the following installed:
    ```bash
    git clone [https://github.com/danialkh/System-Monitor-Support-Chat.git](https://github.com/danialkh/System-Monitor-Support-Chat.git)
    cd System-Monitor-Support-Chat/backend
+
+Install dependencies:
+Bash npm install
+Configure Environment Variables:Create a .env file in your **backend** directory and add your **Gemini API key**:Code snippetPORT=5005
+
+GEMINI_API_KEY=your_gemini_api_key_here
+Run the Application:Bashnode index.js
+
+
+
+The server will start up on http://localhost:5005.🔌 API EndpointsMethodEndpointDescriptionGET/api/metricsFetches current server uptime, CPU load, and active user count.GET/api/messagesRetrieves the complete message history.POST/api/messagesSubmits a new chat message and triggers the automated Gemini response pipeline.GET/api/eventsEstablishes the real-time SSE stream for metrics and chat updates.
