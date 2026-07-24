@@ -1,0 +1,38 @@
+# 🖥️ System Monitor Support Chat
+
+> A real-time monitoring and support dashboard backend built with **Node.js**, **Express**, **Server-Sent Events (SSE)**, and the **Google Gen AI SDK** (`@google/genai`).
+
+---
+
+## 🚀 Features
+
+* **🤖 AI-Powered Support Chat:** Seamlessly integrated with Google's Gemini model to provide intelligent, contextual support responses.
+* **📊 Live System Metrics:** Continuously streams real-time CPU load fluctuations, active user counts, and server uptime.
+* **⚡ Server-Sent Events (SSE):** Low-latency live updates for new messages, message status lifecycles (`sent` ➔ `delivered` ➔ `read`), and periodic metric broadcasts.
+* **🔄 Dynamic Event Broadcasting:** Instant client synchronization for chat histories and telemetry data.
+
+---
+
+## 🛠️ Tech Stack
+
+* **Backend:** Node.js, Express
+* **Real-Time Comm:** Server-Sent Events (SSE)
+* **AI Integration:** `@google/genai` (Gemini SDK)
+* **Utilities:** `dotenv`, `cors`
+
+---
+
+## ⚙️ Getting Started
+
+### Prerequisites
+
+Ensure you have the following installed:
+* **Node.js** (v18+ recommended)
+* **npm** 
+
+### Installation & Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/danialkh/System-Monitor-Support-Chat.git](https://github.com/danialkh/System-Monitor-Support-Chat.git)
+   cd System-Monitor-Support-Chat/backend
