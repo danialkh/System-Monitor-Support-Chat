@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Messenger & Metrics Dashboard</title>
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: rgba(22, 30, 49, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary-color: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.35);
+      --success-color: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.35);
+      --accent-color: #8b5cf6;
+      --accent-glow: rgba(139, 92, 246, 0.35);
+      --chat-bubble-user: #2563eb;
+      --chat-bubble-bot: #1f2937;
+      --chat-bubble-system: rgba(31, 41, 55, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: radial-gradient(circle at top left, #111827, var(--bg-color));
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Header Styling */
+    header {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-dot {
+      width: 12px;
+      height: 12px;
+      background-color: var(--primary-color);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--primary-glow);
+      animation: pulse 2s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      100% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 15px var(--primary-color); }
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #fff, #9ca3af);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .connection-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      background: rgba(31, 41, 55, 0.6);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #ef4444;
+      border-radius: 50%;
+      transition: background-color 0.3s ease;
+    }
+
+    .connected .badge-dot {
+      background-color: var(--success-color);
+      box-shadow: 0 0 8px var(--success-color);
+    }
+
+    /* Main Dashboard Layout */
+    main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 1.5rem;
+      height: calc(100vh - 70px);
+    }
+
+    /* Metrics Grid Section */
+    .metrics-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .metric-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+
+    .card-cpu::before { background: var(--primary-color); }
+    .card-cpu:hover { box-shadow: 0 10px 25px -5px var(--primary-glow); }
+    .card-users::before { background: var(--success-color); }
+    .card-users:hover { box-shadow: 0 10px 25px -5px var(--success-glow); }
+    .card-uptime::before { background: var(--accent-color); }
+    .card-uptime:hover { box-shadow: 0 10px 25px -5px var(--accent-glow); }
+
+    .metric-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .card-cpu .metric-icon { color: var(--primary-color); }
+    .card-users .metric-icon { color: var(--success-color); }
+    .card-uptime .metric-icon { color: var(--accent-color); }
+
+    .metric-info {
+      flex: 1;
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* CPU Progress Bar inside card */
+    .cpu-bar-container {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .cpu-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--primary-color);
+      box-shadow: 0 0 8px var(--primary-color);
+      border-radius: 3px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Dashboard Interface Section */
+    .interface-section {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      overflow: hidden;
+      height: 100%;
+      min-height: 0; /* Important for flex/grid inner scrolls */
+    }
+
+    /* Contacts Sidebar */
+    .sidebar {
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      background: rgba(15, 23, 42, 0.3);
+    }
+
+    .sidebar-header {
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .sidebar-header h2 {
+      font-size: 1rem;
+      color: #fff;
+    }
+
+    .contacts-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s;
+      margin-bottom: 6px;
+    }
+
+    .contact-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .contact-item.active {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+    }
+
+    .avatar-wrapper {
+      position: relative;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #fff;
+      border: 2px solid var(--card-border);
+    }
+
+    .contact-item.active .avatar {
+      border-color: var(--primary-color);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid #0f172a;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+
+    .status-online { background-color: var(--success-color); }
+    .status-away { background-color: #f59e0b; }
+
+    .contact-details {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .contact-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+
+    .contact-status-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Messenger Main Area */
+    .messenger-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .chat-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.2);
+    }
+
+    .chat-user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-user-status {
+      font-size: 0.8rem;
+      color: var(--success-color);
+    }
+
+    .chat-history {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      scroll-behavior: smooth;
+    }
+
+    /* Chat bubble system */
+    .message-row {
+      display: flex;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(15px);
+      animation: messageAppear 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes messageAppear {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-row.me {
+      justify-content: flex-end;
+    }
+
+    .message-row.them {
+      justify-content: flex-start;
+    }
+
+    .message-row.system {
+      justify-content: center;
+    }
+
+    .message-bubble {
+      max-width: 65%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      position: relative;
+    }
+
+    .me .message-bubble {
+      background: var(--chat-bubble-user);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);
+    }
+
+    .them .message-bubble {
+      background: var(--chat-bubble-bot);
+      color: var(--text-main);
+      border-bottom-left-radius: 4px;
+      border: 1px solid var(--card-border);
+    }
+
+    .system .message-bubble {
+      background: var(--chat-bubble-system);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      text-align: center;
+      border: 1px solid var(--card-border);
+    }
+
+    .message-meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 5px;
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .them .message-meta {
+      color: var(--text-muted);
+      justify-content: flex-start;
+    }
+
+    /* Status Checks SVGs with transitions */
+    .delivery-status {
+      display: inline-flex;
+      align-items: center;
+      width: 16px;
+      height: 16px;
+    }
+
+    .status-icon {
+      width: 100%;
+      height: 100%;
+      fill: currentColor;
+      transition: all 0.3s ease;
+    }
+
+    .status-sending-icon {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Typing indicator animation */
+    .typing-indicator-container {
+      display: none; /* Controlled by JS */
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--chat-bubble-bot);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      width: fit-content;
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+      animation: messageAppear 0.25s ease-out forwards;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1.0); }
+    }
+
+    /* Input area */
+    .chat-input-area {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid var(--card-border);
+      background: rgba(15, 23, 42, 0.3);
+    }
+
+    .input-form {
+      display: flex;
+      gap: 12px;
+    }
+
+    .input-form input {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-form input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    .input-form button {
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 0 20px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.2s, transform 0.1s;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .input-form button:hover {
+      background-color: #2563eb;
+    }
+
+    .input-form button:active {
+      transform: scale(0.97);
+    }
+
+    /* Custom Scrollbar for stylish feel */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      main {
+        grid-template-rows: auto auto 1fr;
+        height: auto;
+        overflow-y: visible;
+      }
+      .interface-section {
+        grid-template-columns: 1fr;
+        height: 600px;
+      }
+      .sidebar {
+        display: none; /* Simple mobile adjustment: hide contact list sidebar */
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-dot"></div>
+      <h1>System Monitor & Support Chat</h1>
+    </div>
+    <div class="connection-badge" id="connectionBadge">
+      <div class="badge-dot"></div>
+      <span id="connectionText">Connecting Event Stream...</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Top Row: Metrics Cards -->
+    <section class="metrics-section">
+      <!-- CPU Load Card -->
+      <div class="metric-card card-cpu">
+        <div class="metric-icon">📊</div>
+        <div class="metric-info">
+          <div class="metric-label">CPU LOAD</div>
+          <div class="metric-value" id="cpuValue">--</div>
+          <div class="cpu-bar-container">
+            <div class="cpu-bar" id="cpuBar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Users Card -->
+      <div class="metric-card card-users">
+        <div class="metric-icon">👥</div>
+        <div class="metric-info">
+          <div class="metric-label">ACTIVE USERS</div>
+          <div class="metric-value" id="usersValue">--</div>
+        </div>
+      </div>
+
+      <!-- Uptime Card -->
+      <div class="metric-card card-uptime">
+        <div class="metric-icon">⏱️</div>
+        <div class="metric-info">
+          <div class="metric-label">SYSTEM UPTIME</div>
+          <div class="metric-value" id="uptimeValue">--</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Row: Messaging Workspace -->
+    <section class="interface-section">
+      <!-- Sidebar Contacts list -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h2>Active Threads</h2>
+        </div>
+        <div class="contacts-list">
+          <div class="contact-item active">
+            <div class="avatar-wrapper">
+              <div class="avatar" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">B</div>
+              <div class="status-dot status-online"></div>
+            </div>
+            <div class="contact-details">
+              <div class="contact-name">Support Assistant</div>
+              <div class="contact-status-text">Ready to help</div>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="avatar-wrapper">
+              <div class="avatar" style="background: linear-gradient(135deg, #10b981, #047857);">S</div>
+              <div class="status-dot status-online"></div>
+            </div>
+            <div class="contact-details">
+              <div class="contact-name">System Bot</div>
+              <div class="contact-status-text">Performance alerts OK</div>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="avatar-wrapper">
+              <div class="avatar" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">N</div>
+              <div class="status-dot status-away"></div>
+            </div>
+            <div class="contact-details">
+              <div class="contact-name">Network Admin</div>
+              <div class="contact-status-text">Away (On Call)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Messenger Container -->
+      <div class="messenger-container">
+        <!-- Chat header details -->
+        <div class="chat-header">
+          <div class="chat-user-info">
+            <div class="avatar" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); width:32px; height:32px; font-size:0.8rem;">B</div>
+            <div>
+              <strong style="font-size:0.95rem; color:#fff;">Support Assistant</strong>
+              <div class="chat-user-status">online</div>
+            </div>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">ID: #SUP-8821</div>
+        </div>
+
+        <!-- Chat history containing messages -->
+        <div class="chat-history" id="chatHistory">
+          <!-- Messages dynamically loaded here -->
+        </div>
+
+        <!-- Typing Indicator template -->
+        <div class="typing-indicator-container" id="typingIndicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+
+        <!-- Message Composer Form -->
+        <div class="chat-input-area">
+          <form class="input-form" id="inputForm">
+            <input type="text" id="messageInput" placeholder="Type a message to test animated delivery checks..." autocomplete="off">
+            <button type="submit" id="sendBtn">
+              <span>Send</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
