@@ -11,8 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // Initialize Google Gen AI client (automatically picks up process.env.GEMINI_API_KEY)
-//const ai = new GoogleGenAI();
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY});
+//const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY});
 
 // In-memory data store
 const startTime = Date.now();
