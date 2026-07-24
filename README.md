@@ -40,10 +40,10 @@ Ensure you have the following installed:
 Install dependencies:
 Bash npm install
 Configure Environment Variables:Create a .env file in your **backend** directory and add your **Gemini API key**:Code snippetPORT=5005
-
-```bash
-GEMINI_API_KEY=your_gemini_api_key_here
-Run the Application:Bashnode index.js
+   
+   ```bash
+   GEMINI_API_KEY=your_gemini_api_key_here
+   Run the Application:Bashnode index.js
 
 
 
